@@ -1,0 +1,72 @@
+1. dokcer 설치 (window 에서 docker 설치를 위해선 wsl2가 설치되어있어야함)
+https://www.docker.com/products/docker-desktop/
+에서 운영체제에 맞는 docker desktop 설치
+
+docker -v 를 통해 docker 버전이 확인되면 설치 완료
+
+2. mysql docker 이미지 다운로드 
+docker pull mysql
+명령어를 통해 mysql docker 최신 버전을 다운로드
+
+docker images
+명령어를 통해 mysql docker 이미지 다운로드 확인 완료
+
+3. mysql docker 컨테이너 생성 및 실행 
+docker run --name bin-mysql -e MYSQL_ROOT_PASSWORD=123 -d -p 3306:3306 mysql:latest
+명렁어를 통해 bin-mysql 이라는 이름의 비밀번호는 123인 mysql docker컨테이너를 생성 및 실행 하게 됨
+
+그 후 docker ps -a 를 통해 golf-db이라는 이름의 컨테이너가 생성 되었는지 확인
+
+4. mysql docker 컨테이너를 시작하고 중지하는 법은
+docker start golf-db
+docker stop golf-db
+두 명령어를 통해 컨테이너를 실행하고 중지하거나
+위에서 깔았던 docker desktop을 통해 직접 실행하고 종료할 수 있음.
+
+5. mysql docker 컨테이너를 실행한 후 컨테이너 접속
+
+위에서 컨테이너를 실행하였다면
+docker exec -it golf-db bash를 통해 mysql 컨테이너에 접속하게 됨
+접속하면 root@~ : 
+이런 식으로 보이게 되는데 
+mysql은 처음 user를 만들기 전까진 root 로 접속이 가능하므로 
+mysql -u root -p 를 입력 후
+password가 나오면 위에서 설정했던 비밀번호 123을 입력해주면 mysql을 실행할 수 있게 된다.
+mysql>같이 뜨면 접속 성공!
+
+6. database 만들기
+우선 show databases; 를 통해 만들어져 있는 db를 확인 후
+내가 원하고자 하는 db를 하나 만들어준다.
+CREATE DATABASE golf default CHARACTER SET UTF8;
+위 명령어를 통해 golf라는 이름의 database가 만들어지게 되고
+다시한번 show databases;를 통해 golf라는 database가 만들어진 것을 확인 할 수 있다.
+
+7. 데이터 베이스를 사용할 사용자 추가
+원하는 데이터 베이스를 만들었다면 root로 접근 하는 것이 아닌 그 db를 사용할때 접근 할 user를 만들어야 한다.
+
+7-1. user 만들기
+
+CREATE USER 'admin'@'%' IDENTIFIED BY '123';
+위 명령어를 통해 123이라는 비밀번호를 가지고 있는  bin이라는 이름을 가지는 user를 만든다.
+
+Query OK, 0 rows affected (0.01 sec) 가 뜬다면 성공!
+
+7-2 user에게 해당 db의 모든 권한을 부여
+
+GRANT ALL ON *.* TO 'admin'@'%';
+위 명령어를 통해 bin유저에게 golf라는 db의 모든 권한 부여 
+
+Query OK, 0 rows affected (0.01 sec)가 뜬다면 성공!
+exit 명령어를 통해 mysql 접속상태를 해지하여 root@~: 상태로 나온 후 
+mysql -u bin -h {나의 로컬호스트 ip} -p
+mysql -u admin -h 127.0.0.1 -p
+를 입력하여 내가 설정한 user로 접근 테스트
+
+
+여기까지 되었다면 mysql docker 컨테이너 설정 완료!
+
+8. golf-db의 config.py 에서
+user는 위에서 설정했던 내 유저의 이름
+databse는 내가 만들었던 dabase의 이름을 넣고 실행하면 sqlalchemy를 통해 mysql docker 컨테이너에 값을 집어넣어줄 수 있음
+
+ 
